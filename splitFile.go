@@ -19,6 +19,7 @@ func main() {
 
 		var clickedbutton = r.FormValue("clicked_button")
 
+		
 		if len(clickedbutton) > 0 {
 			if strings.Compare(clickedbutton, "split") == 0 {
 				fmt.Println("inside split file")
