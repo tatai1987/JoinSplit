@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="us">
+<head>
+	<meta charset="utf-8">
+	<title>Multi Utility Splitter and Joiner</title>
+	<link href="jquery-ui.css" rel="stylesheet">
+	<style>
+	body{
+		font-family: "Trebuchet MS", sans-serif;
+		margin: 50px;
+		background: #134E5E;  /* fallback for old browsers */
+        background: -webkit-linear-gradient(to right, #71B280, #134E5E);  /* Chrome 10-25, Safari 5.1-6 */
+        background: linear-gradient(to right, #71B280, #134E5E); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+	}
+	.demoHeaders {
+		margin-top: 2em;
+	}
+	</style>
+</head>
+<body>
+
+<h1>File Splitter and Joiner</h1>
+<form enctype="multipart/form-data" method="POST" action="/httprequest/">
+<!-- Tabs -->
+<h2 class="demoHeaders">Your File will be Downloaded Shortly</h2>
+<div id="progressbar"></div>
+<div class="ui-widget">
+	<div class="ui-state-highlight ui-corner-all" style="margin-top: 20px; padding: 0 .7em;">
+		<p><span class="ui-icon ui-icon-info" style="float: left; margin-right: .3em;"></span>
+		<strong>Hey!</strong> Thanks for Trying out our Application. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Regards: SB and PM</p>
+	</div>
+</div>
+<br>
+</form>
+<script src="external/jquery/jquery.js"></script>
+<script src="jquery-ui.js"></script>
+<script>
+$( "#button1" ).button();
+$( "#button2" ).button();
+$( "#tabs" ).tabs();
+
+$( "#progressbar" ).progressbar({
+	value: 70
+});
+function buttonClick(theButton){
+    document.getElementById('clicked_button').value = theButton.name;
+    return true;
+}
+</script>
+</body>
+</html>
