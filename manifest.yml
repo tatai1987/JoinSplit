@@ -5,4 +5,4 @@ applications:
   domain: mybluemix.net
   name: JoinSplit
   disk_quota: 1024M
-  random-route: true
+  host: JoinSplit1
