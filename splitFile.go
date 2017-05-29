@@ -14,12 +14,13 @@ import (
 	"strings"
 )
 
+var target string
+
 func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 
 		var clickedbutton = r.FormValue("clicked_button")
 
-		
 		if len(clickedbutton) > 0 {
 			if strings.Compare(clickedbutton, "split") == 0 {
 				fmt.Println("inside split file")
@@ -64,15 +65,14 @@ func main() {
 
 			}
 		}
-
-		fmt.Printf("url value %s", r.URL.Path[1:])
 		var urlvalue = r.URL.Path[1:]
 		if strings.Compare(urlvalue, "confirmation.html") == 0 {
-			fmt.Println("inside urlvalue")
-			w.Header().Set("Content-Type", "applicaiton/zip")
-			w.Header().Set("Content-Disposition", "attachment; filename=files.zip")
-			target := "\\temp" + "\\files.zip"
-			http.ServeFile(w, r, target)
+			if len(target) > 0 {
+				w.Header().Set("Content-Type", "applicaiton/zip")
+				w.Header().Set("Content-Disposition", "attachment; filename=files.zip")
+				http.ServeFile(w, r, target)
+			}
+
 		} else {
 			http.ServeFile(w, r, r.URL.Path[1:])
 		}
@@ -91,11 +91,15 @@ func splitfile(x []byte, filename string, slice string) {
 		var counter int
 		slices, _ := strconv.Atoi(slice)
 		sz := len(x)
-		fmt.Println(sz)
 		var sliceCount int
 		sliceSize := sz / slices
 		copyOfSliceSize := sz / slices
-		fmt.Println(sliceSize)
+		source := directory + "/temp/"
+		target = source + "files.zip"
+		//cleans the previous files.
+		//removeContents(directory + "/temp/")
+		//os.RemoveAll(source)
+		//os.MkdirAll(source, 0644)
 		for counter < slices {
 			counter++
 			var buffer bytes.Buffer
@@ -114,10 +118,9 @@ func splitfile(x []byte, filename string, slice string) {
 			if err != nil {
 				panic(err)
 			}
-			target := directory + "\\temp" + "\\files.zip"
-			fmt.Printf("target:%s", target)
-			zipit(buffer.String(), target)
 		}
+
+		zipit(source, target)
 	}
 }
 
@@ -140,7 +143,7 @@ func joinfile(fileArray string, x []byte, y []byte) {
 		if err != nil {
 			panic(err)
 		}
-		target := filepath.Dir(files[0]) + "\\temp" + "\\files.zip"
+		target := mergefileName + "/files.zip"
 		//create the zipfile
 		zipit(mergefileName, target)
 
@@ -170,14 +173,12 @@ func checkfileType(files []string) bool {
 
 func zipit(source, target string) error {
 	zipfile, err := os.Create(target)
-
 	if err != nil {
 		return err
 	}
 	defer zipfile.Close()
 
 	archive := zip.NewWriter(zipfile)
-
 	defer archive.Close()
 
 	info, err := os.Stat(source)
@@ -185,8 +186,11 @@ func zipit(source, target string) error {
 		return nil
 	}
 
-	fmt.Println(info)
-
+	var baseDir string
+	if info.IsDir() {
+		baseDir = filepath.Base(source)
+	}
+	fmt.Println(baseDir)
 	filepath.Walk(source, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -196,9 +200,20 @@ func zipit(source, target string) error {
 		if err != nil {
 			return err
 		}
+
+		if info.IsDir() {
+			header.Name += "/"
+		} else {
+			header.Method = zip.Deflate
+		}
+
 		writer, err := archive.CreateHeader(header)
 		if err != nil {
 			return err
+		}
+
+		if info.IsDir() {
+			return nil
 		}
 
 		file, err := os.Open(path)
@@ -211,4 +226,26 @@ func zipit(source, target string) error {
 	})
 
 	return err
+}
+
+//remove the content of folder
+func removeContents(dir string) error {
+	fmt.Printf("directiory%s\n", dir)
+	d, err := os.Open(dir)
+	if err != nil {
+		return err
+	}
+	defer d.Close()
+	names, err := d.Readdirnames(-1)
+	if err != nil {
+		return err
+	}
+	for _, name := range names {
+		fmt.Printf("name:%s\n", name)
+		err = os.RemoveAll(filepath.Join(dir, name))
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
