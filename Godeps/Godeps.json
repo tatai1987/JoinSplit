@@ -1,5 +1,5 @@
 {
-	"ImportPath": "gohelloworld",
+	"ImportPath": "joinsplit",
 	"GoVersion": "go1.5.4",
 	"Deps": []
 }
