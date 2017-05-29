@@ -1,8 +1,5 @@
 applications:
-- path: .
+- name: JoinSplit
+  random-route: true
   memory: 128M
-  instances: 1
-  domain: mybluemix.net
-  name: JoinSplit
-  disk_quota: 1024M
-  host: JoinSplit1
+  buildpack: https://github.com/cloudfoundry/go-buildpack
