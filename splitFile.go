@@ -143,15 +143,15 @@ func joinfile(fileArray string, x []byte, y []byte, source string, newpath strin
 		for j = 0; j < len(y); j++ {
 			z = append(z, y[j])
 		}
-		var mergefileName = filepath.Dir(files[0]) + "\\temp" + "\\Merge" + filepath.Ext(files[0])
+		var mergefileName = newpath + "\\Merge" + filepath.Ext(files[0])
 		os.Create(mergefileName)
 		err := ioutil.WriteFile(mergefileName, z, 0644)
 		if err != nil {
 			panic(err)
 		}
-		target := mergefileName + "/files.zip"
+		target = source + "files.zip"
 		//create the zipfile
-		zipit(mergefileName, target)
+		zipit(source, target)
 
 	} else {
 		fmt.Println("No call")
