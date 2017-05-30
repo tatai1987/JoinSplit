@@ -85,34 +85,43 @@ func splitfile(x []byte, filename string, slice string) {
 	fmt.Println("entering splitfile")
 
 	if len(filename) > 0 {
+
 		var extension = filepath.Ext(filename)
-		var directory = filepath.Dir(filename)
 		fileNameWithoutExt := strings.TrimSuffix(filename, filepath.Ext(filename))
 		var counter int
 		slices, _ := strconv.Atoi(slice)
 		sz := len(x)
+		newpath := filepath.Join(".", "/temp/")
+		source := newpath + "/"
+		removeContents(source)
+		os.MkdirAll(newpath, os.ModePerm)
 		var sliceCount int
 		sliceSize := sz / slices
 		copyOfSliceSize := sz / slices
-		source := directory + "/temp/"
+
 		target = source + "files.zip"
 		//cleans the previous files.
-		removeContents(source)
+
 		for counter < slices {
 			counter++
 			var buffer bytes.Buffer
-			buffer.WriteString(directory)
-			buffer.WriteString("/temp/")
+			//buffer.WriteString(directory)
+			buffer.WriteString(newpath)
+			buffer.WriteString("/")
 			buffer.WriteString(fileNameWithoutExt)
 			buffer.WriteString("_")
 			t := strconv.Itoa(counter)
 			buffer.WriteString(t)
 			buffer.WriteString(extension)
-			os.Create(buffer.String())
+			fmt.Println(buffer.String())
+			_, err := os.Create(buffer.String())
+			if err != nil {
+				panic(err)
+			}
 			song := x[sliceCount:(sliceSize)]
 			sliceCount = sliceSize
 			sliceSize += copyOfSliceSize
-			var err = ioutil.WriteFile(buffer.String(), song, 0644)
+			err = ioutil.WriteFile(buffer.String(), song, 0644)
 			if err != nil {
 				panic(err)
 			}
@@ -227,25 +236,13 @@ func zipit(source, target string) error {
 }
 
 //remove the content of folder
-func removeContents(dir string) error {
-	d, err := os.Open(dir)
-	if err != nil {
-		return err
+func removeContents(dir string) {
+	if _, err := os.Stat(dir); err == nil {
+		d, _ := os.Open(dir)
+		fmt.Println(dir)
+		os.RemoveAll(dir)
+		os.RemoveAll("/temp/")
+		defer d.Close()
 	}
-	defer d.Close()
-	names, err := d.Readdirnames(-1)
-
-	if err != nil {
-		return err
-	}
-	for _, name := range names {
-		fmt.Printf("name:%s\n", name)
-		fmt.Printf("full Path%s\n", filepath.Join(dir, name))
-		err = os.RemoveAll(filepath.Join(dir, name))
-		if err != nil {
-			return err
-		}
-	}
-	return nil
 
 }
