@@ -15,9 +15,7 @@ import (
 )
 
 var target string
-const (
-	DEFAULT_PORT = "8080"
-)
+
 func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 
@@ -80,11 +78,7 @@ func main() {
 		}
 
 	})
-	var port string
-	if port = os.Getenv("PORT"); len(port) == 0 {
-		port = DEFAULT_PORT
-	}
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	log.Fatal(http.ListenAndServe(":8081", nil))
 }
 
 func splitfile(x []byte, filename string, slice string) {
@@ -103,9 +97,7 @@ func splitfile(x []byte, filename string, slice string) {
 		source := directory + "/temp/"
 		target = source + "files.zip"
 		//cleans the previous files.
-		//removeContents(directory + "/temp/")
-		//os.RemoveAll(source)
-		//os.MkdirAll(source, 0644)
+		removeContents(source)
 		for counter < slices {
 			counter++
 			var buffer bytes.Buffer
@@ -236,22 +228,24 @@ func zipit(source, target string) error {
 
 //remove the content of folder
 func removeContents(dir string) error {
-	fmt.Printf("directiory%s\n", dir)
 	d, err := os.Open(dir)
 	if err != nil {
 		return err
 	}
 	defer d.Close()
 	names, err := d.Readdirnames(-1)
+
 	if err != nil {
 		return err
 	}
 	for _, name := range names {
 		fmt.Printf("name:%s\n", name)
+		fmt.Printf("full Path%s\n", filepath.Join(dir, name))
 		err = os.RemoveAll(filepath.Join(dir, name))
 		if err != nil {
 			return err
 		}
 	}
 	return nil
+
 }
