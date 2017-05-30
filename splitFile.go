@@ -20,7 +20,10 @@ func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 
 		var clickedbutton = r.FormValue("clicked_button")
-
+		newpath := filepath.Join(".", "/temp/")
+		source := newpath + "/"
+		removeContents(source)
+		os.MkdirAll(newpath, os.ModePerm)
 		if len(clickedbutton) > 0 {
 			if strings.Compare(clickedbutton, "split") == 0 {
 				fmt.Println("inside split file")
@@ -34,7 +37,7 @@ func main() {
 						panic(dataerr1)
 					}
 					var slice = r.FormValue("slice")
-					splitfile(data1, header1.Filename, slice)
+					splitfile(data1, header1.Filename, slice, source, newpath)
 				}
 			} else if strings.Compare(clickedbutton, "join") == 0 {
 				fmt.Println("Inside join file")
@@ -51,7 +54,7 @@ func main() {
 					}
 					var joinfilesArray = header2.Filename + "," + header3.Filename
 					if len(joinfilesArray) > 0 {
-						joinfile(joinfilesArray, data2, data3)
+						joinfile(joinfilesArray, data2, data3, source, newpath)
 					}
 
 				}
@@ -81,7 +84,7 @@ func main() {
 	log.Fatal(http.ListenAndServe(":8081", nil))
 }
 
-func splitfile(x []byte, filename string, slice string) {
+func splitfile(x []byte, filename string, slice string, source string, newpath string) {
 	fmt.Println("entering splitfile")
 
 	if len(filename) > 0 {
@@ -91,10 +94,6 @@ func splitfile(x []byte, filename string, slice string) {
 		var counter int
 		slices, _ := strconv.Atoi(slice)
 		sz := len(x)
-		newpath := filepath.Join(".", "/temp/")
-		source := newpath + "/"
-		removeContents(source)
-		os.MkdirAll(newpath, os.ModePerm)
 		var sliceCount int
 		sliceSize := sz / slices
 		copyOfSliceSize := sz / slices
@@ -113,7 +112,7 @@ func splitfile(x []byte, filename string, slice string) {
 			t := strconv.Itoa(counter)
 			buffer.WriteString(t)
 			buffer.WriteString(extension)
-			fmt.Println(buffer.String())
+
 			_, err := os.Create(buffer.String())
 			if err != nil {
 				panic(err)
@@ -131,7 +130,7 @@ func splitfile(x []byte, filename string, slice string) {
 	}
 }
 
-func joinfile(fileArray string, x []byte, y []byte) {
+func joinfile(fileArray string, x []byte, y []byte, source string, newpath string) {
 
 	fmt.Println("entering joinfile")
 	var files []string
@@ -179,60 +178,61 @@ func checkfileType(files []string) bool {
 }
 
 func zipit(source, target string) error {
+	fileList := []string{}
+	filepath.Walk(source, func(path string, f os.FileInfo, err error) error {
+		fileList = append(fileList, path)
+		return nil
+	})
+	sz := len(fileList)
+	fileList = fileList[1:sz]
+
 	zipfile, err := os.Create(target)
 	if err != nil {
 		return err
 	}
-	defer zipfile.Close()
-
 	archive := zip.NewWriter(zipfile)
 	defer archive.Close()
 
-	info, err := os.Stat(source)
-	if err != nil {
-		return nil
-	}
-
-	var baseDir string
-	if info.IsDir() {
-		baseDir = filepath.Base(source)
-	}
-	fmt.Println(baseDir)
 	filepath.Walk(source, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
+		for _, file := range fileList {
 
-		header, err := zip.FileInfoHeader(info)
-		if err != nil {
-			return err
-		}
+			zipFile, err := os.Open(file)
+			if err != nil {
+				return err
+			}
+			defer zipFile.Close()
 
-		if info.IsDir() {
-			header.Name += "/"
-		} else {
-			header.Method = zip.Deflate
-		}
+			// get the file information
+			info, err := zipFile.Stat()
+			if err != nil {
+				return err
+			}
 
-		writer, err := archive.CreateHeader(header)
-		if err != nil {
-			return err
-		}
+			// create a zip header from the os.FileInfo
+			header, err := zip.FileInfoHeader(info)
+			if err != nil {
+				return err
+			}
 
-		if info.IsDir() {
-			return nil
-		}
+			// write the header to the zip file
+			writer, err := archive.CreateHeader(header)
+			if err != nil {
+				return err
+			}
 
-		file, err := os.Open(path)
-		if err != nil {
-			return err
+			// copy the file to the zip file
+			_, err = io.Copy(writer, zipFile)
+			if err != nil {
+				return err
+			}
+			os.Remove(file)
 		}
-		defer file.Close()
-		_, err = io.Copy(writer, file)
 		return err
 	})
-
-	return err
+	return nil
 }
 
 //remove the content of folder
