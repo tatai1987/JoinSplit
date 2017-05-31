@@ -143,9 +143,18 @@ func joinfile(fileArray string, x []byte, y []byte, source string, newpath strin
 		for j = 0; j < len(y); j++ {
 			z = append(z, y[j])
 		}
-		var mergefileName = newpath + "\\Merge" + filepath.Ext(files[0])
-		os.Create(mergefileName)
-		err := ioutil.WriteFile(mergefileName, z, 0644)
+
+		var buffer bytes.Buffer
+		//buffer.WriteString(directory)
+		buffer.WriteString(newpath)
+		buffer.WriteString("/")
+		buffer.WriteString("Merge")
+		buffer.WriteString(filepath.Ext(files[0]))
+		_, err := os.Create(buffer.String())
+		if err != nil {
+			panic(err)
+		}
+		err = ioutil.WriteFile(buffer.String(), z, 0644)
 		if err != nil {
 			panic(err)
 		}
