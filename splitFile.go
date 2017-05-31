@@ -16,6 +16,10 @@ import (
 
 var target string
 
+const (
+	DEFAULT_PORT = "8080"
+)
+
 func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 
@@ -81,7 +85,11 @@ func main() {
 		}
 
 	})
-	log.Fatal(http.ListenAndServe(":8081", nil))
+	var port string
+	if port = os.Getenv("PORT"); len(port) == 0 {
+		port = DEFAULT_PORT
+	}
+	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
 
 func splitfile(x []byte, filename string, slice string, source string, newpath string) {
